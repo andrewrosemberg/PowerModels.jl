@@ -254,9 +254,22 @@ end
 function constraint_ohms_yt_from(pm::AbstractNFAModel, n::Int, c::Int, f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm)
 end
 
+######## NFA with Line Losses ########
 
+function constraint_ohms_yt_from(pm::NFALLPowerModel, n::Int, c::Int, f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm)
+end
 
+function constraint_ohms_yt_to(pm::NFALLPowerModel, n::Int, c::Int, f_bus, t_bus, f_idx, t_idx, g, b, g_to, b_to, tr, ti, tm)
+    p_fr  = var(pm, n, c,  :p, f_idx)
+    p_to  = var(pm, n, c,  :p, t_idx)
+    va_fr = var(pm, n, c, :va, f_bus)
+    va_to = var(pm, n, c, :va, t_bus)
 
+    θ = JuMP.@variable(pm.model)
+    JuMP.@constraint(pm.model, p_to <= θ)
+    JuMP.@constraint(pm.model, p_fr <= θ)
+    JuMP.@constraint(pm.model, p_to + p_fr >= θ * 0.1)
+end
 
 ######## DC with Line Losses ########
 

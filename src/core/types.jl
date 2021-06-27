@@ -167,6 +167,9 @@ abstract type AbstractDCPLLModel <: AbstractDCPModel end
 ""
 mutable struct DCPLLPowerModel <: AbstractDCPLLModel @pm_fields end
 
+""
+mutable struct NFALLPowerModel <: AbstractDCPLLModel @pm_fields end
+
 
 ""
 abstract type AbstractLPACModel <: AbstractPowerModel end
