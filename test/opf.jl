@@ -438,6 +438,40 @@ end
     end
 end
 
+@testset "test nfa+ll opf" begin
+
+    @testset "5-bus case" begin
+        result = run_opf("../test/data/matpower/case5_mod.m", NFALLPowerModel, ipopt_solver;  
+            setting = Dict("output" => Dict("branch_flows" => true))
+        )
+
+        @test result["termination_status"] == LOCALLY_SOLVED
+        @test isapprox(result["objective"], 13706.7; atol = 1e0)
+
+        for brc in values(result["solution"]["branch"])
+            @test brc["pt"] >= brc["pf"] ? isapprox(brc["pf"], -0.9 * brc["pt"]; atol = 1e-3) : isapprox(brc["pt"], -0.9 * brc["pf"]; atol = 1e-3)
+        end
+
+        result_nfa = run_opf("../test/data/matpower/case5_mod.m", NFAPowerModel, ipopt_solver;  
+            setting = Dict("output" => Dict("branch_flows" => true))
+        )
+
+        @test result["objective"] > result_nfa["objective"]
+    end
+
+    @testset "5-bus reverse case" begin
+        data = PowerModels.parse_file("../test/data/matpower/case5_mod.m")
+        new_f_bus = data["branch"]["1"]["t_bus"]
+        data["branch"]["1"]["t_bus"] = data["branch"]["1"]["f_bus"]
+        data["branch"]["1"]["f_bus"] = new_f_bus
+
+        result_reverse = run_opf(data, NFALLPowerModel, ipopt_solver)
+
+        @test result["termination_status"] == LOCALLY_SOLVED
+        @test isapprox(result_reverse["objective"], result["objective"]; atol = 1e0)
+    end
+
+end
 
 @testset "test lpac-c opf" begin
     @testset "3-bus case" begin
